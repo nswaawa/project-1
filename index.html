@@ -322,7 +322,7 @@
             muatDataDariSheets();
         };
 
-        // FUNGSI MEMUAT DATA DARI GOOGLE SHEETS
+        // 1. FUNGSI MEMUAT DATA DARI GOOGLE SHEETS (TERMASUK GALERI DOKUMENTASI)
         async function muatDataDariSheets() {
             try {
                 let res = await fetch(SCRIPT_URL);
@@ -342,12 +342,18 @@
                     }));
                 }
 
+                if (data.dokumentasi && data.dokumentasi.length > 1) {
+                    galeriDokumentasi = data.dokumentasi.slice(1).map(d => ({
+                        tanggal: d[0], judul: d[1], kategori: d[2], foto: d[3], ket: d[4]
+                    }));
+                }
+
                 renderDaftarMurid();
                 renderTabelSetoranGuru();
                 tampilkanLaporanWali();
                 renderGaleriDokumentasi();
             } catch (err) {
-                console.log("Memuat data lokal/default:", err);
+                console.log("Error muat data:", err);
                 renderDaftarMurid();
                 renderTabelSetoranGuru();
                 tampilkanLaporanWali();
@@ -584,7 +590,6 @@
                 alert(`✅ Setoran ${nama} berhasil diperbarui!`);
             } else {
                 databaseSetoran.push(dataSetoran);
-                // Kirim ke Google Sheets
                 try {
                     await fetch(SCRIPT_URL, {
                         method: "POST",
@@ -636,38 +641,47 @@
             }
         }
 
-        // SIMPAN DOKUMENTASI KEGIATAN
-        function simpanDokumentasi(e) {
+        // 2. SIMPAN DOKUMENTASI KE GOOGLE SHEETS
+        async function simpanDokumentasi(e) {
             e.preventDefault();
             const judul = document.getElementById('doc-judul').value;
             const kategori = document.getElementById('doc-kategori').value;
             const fileInput = document.getElementById('doc-file-foto');
             const ket = document.getElementById('doc-ket').value;
 
-            if (fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const fotoBase64 = e.target.result;
-                    galeriDokumentasi.push({
-                        judul, kategori, foto: fotoBase64, ket, tanggal: new Date().toLocaleDateString('id-ID')
-                    });
-
-                    alert("✅ Dokumentasi kegiatan berhasil diupload ke galeri!");
-                    document.getElementById('doc-judul').value = '';
-                    document.getElementById('doc-file-foto').value = '';
-                    document.getElementById('doc-ket').value = '';
-                    renderGaleriDokumentasi();
+            const prosesKirim = async (fotoData) => {
+                const dataDoc = {
+                    action: "tambahDokumentasi",
+                    judul, kategori, foto: fotoData, ket
                 };
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
+
                 galeriDokumentasi.push({
-                    judul, kategori, foto: '', ket, tanggal: new Date().toLocaleDateString('id-ID')
+                    judul, kategori, foto: fotoData, ket, tanggal: new Date().toLocaleDateString('id-ID')
                 });
 
-                alert("✅ Dokumentasi kegiatan berhasil dipublish!");
-                document.getElementById('doc-judul').value = '';
-                document.getElementById('doc-ket').value = '';
                 renderGaleriDokumentasi();
+
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: "POST",
+                        body: JSON.stringify(dataDoc)
+                    });
+                    alert("✅ Dokumentasi tersimpan permanen di Google Sheets!");
+                } catch (err) {
+                    alert("✅ Dokumentasi tersimpan secara lokal.");
+                }
+
+                document.getElementById('doc-judul').value = '';
+                document.getElementById('doc-file-foto').value = '';
+                document.getElementById('doc-ket').value = '';
+            };
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { prosesKirim(e.target.result); };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                prosesKirim('');
             }
         }
 
