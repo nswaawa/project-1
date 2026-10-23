@@ -321,43 +321,66 @@
         window.onload = function() {
             muatDataDariSheets();
         };
+// SIMPAN DOKUMENTASI DENGAN KOMPRESI FOTO OTOMATIS
+        async function simpanDokumentasi(e) {
+            e.preventDefault();
+            const judul = document.getElementById('doc-judul').value;
+            const kategori = document.getElementById('doc-kategori').value;
+            const fileInput = document.getElementById('doc-file-foto');
+            const ket = document.getElementById('doc-ket').value;
 
-        // 1. FUNGSI MEMUAT DATA DARI GOOGLE SHEETS (TERMASUK GALERI DOKUMENTASI)
-        async function muatDataDariSheets() {
-            try {
-                let res = await fetch(SCRIPT_URL);
-                let data = await res.json();
-                
-                if (data.murid && data.murid.length > 1) {
-                    daftarMurid = data.murid.slice(1).map((m, idx) => ({
-                        id: idx + 1, nama: m[0], kelas: m[1], waliKelas: m[2]
-                    }));
-                }
-                
-                if (data.setoran && data.setoran.length > 1) {
-                    databaseSetoran = data.setoran.slice(1).map(s => ({
-                        tanggal: s[0], nama: s[1], guru: s[2], jenis: s[3],
-                        halaman: s[4], status: s[5], keputusan: s[6],
-                        doa: s[7], sholat: s[8], catatan: s[9]
-                    }));
-                }
+            const prosesKirim = async (fotoData) => {
+                const dataDoc = {
+                    action: "tambahDokumentasi",
+                    judul, kategori, foto: fotoData, ket
+                };
 
-                if (data.dokumentasi && data.dokumentasi.length > 1) {
-                    galeriDokumentasi = data.dokumentasi.slice(1).map(d => ({
-                        tanggal: d[0], judul: d[1], kategori: d[2], foto: d[3], ket: d[4]
-                    }));
-                }
+                galeriDokumentasi.push({
+                    judul, kategori, foto: fotoData, ket, tanggal: new Date().toLocaleDateString('id-ID')
+                });
 
-                renderDaftarMurid();
-                renderTabelSetoranGuru();
-                tampilkanLaporanWali();
                 renderGaleriDokumentasi();
-            } catch (err) {
-                console.log("Error muat data:", err);
-                renderDaftarMurid();
-                renderTabelSetoranGuru();
-                tampilkanLaporanWali();
-                renderGaleriDokumentasi();
+
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: "POST",
+                        body: JSON.stringify(dataDoc)
+                    });
+                    alert("✅ Dokumentasi tersimpan permanen di Google Sheets!");
+                } catch (err) {
+                    alert("⚠️ Gagal mengirim ke Google Sheets, disimpan secara lokal.");
+                }
+
+                document.getElementById('doc-judul').value = '';
+                document.getElementById('doc-file-foto').value = '';
+                document.getElementById('doc-ket').value = '';
+            };
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Kompres foto ke ukuran maksimal lebar 500px
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 500;
+                        const scale = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scale;
+
+                        const ctx = canvas.getContext('canvas');
+                        const ctx2d = canvas.getContext('2d');
+                        ctx2d.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                        // Ubah ke format JPEG kualitas 0.6 agar ukurannya sangat ringan
+                        const fotoKompres = canvas.toDataURL('image/jpeg', 0.6);
+                        prosesKirim(fotoKompres);
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                prosesKirim('');
             }
         }
 
