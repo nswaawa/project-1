@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TPA Al-Ikhlash Pusparaya - Sistem Laporan & Monitoring Murid</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        body { font-family: 'Nunito', sans-serif; background-color: #F0F4F8; }
+        .bg-soft-blue { background-color: #EBF8FF; }
+        .card-soft { background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="text-gray-800 pb-12">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white shadow-sm border-b border-blue-100 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center flex-wrap gap-2">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-md">
+                    🕌
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg text-blue-900 leading-tight">TPA AL-IKHLASH PUSPARAYA</h1>
+                    <p class="text-xs text-blue-600 font-semibold">Sistem Laporan & Monitoring Murid</p>
+                </div>
+            </div>
+            
+            <!-- Switch Role Menu (2 Akses) -->
+            <div class="flex bg-blue-50 p-1 rounded-xl text-xs sm:text-sm font-bold">
+                <button onclick="switchRole('wali')" id="btn-wali" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm">Wali Murid</button>
+                <button onclick="switchRole('guru')" id="btn-guru" class="px-3 py-1.5 rounded-lg text-blue-800 hover:bg-blue-100"><i class="fas fa-lock text-xs mr-1"></i> Portal Guru</button>
+                <button onclick="switchRole('admin')" id="btn-admin" class="px-3 py-1.5 rounded-lg text-blue-800 hover:bg-blue-100"><i class="fas fa-lock text-xs mr-1"></i> Admin</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-5xl mx-auto px-4 mt-6">
+
+        <!-- ==================== TAMPILAN WALI MURID (AKSES UNTUK WALI MURID - TANPA PASSWORD) ==================== -->
+        <div id="view-wali" class="space-y-6">
+            
+            <!-- Banner Profil Lembaga -->
+            <div class="card-soft p-6 bg-gradient-to-r from-blue-600 to-sky-500 text-white relative overflow-hidden">
+                <div class="relative z-10">
+                    <span class="bg-white/20 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Selamat Datang</span>
+                    <h2 class="text-2xl font-extrabold mt-2">TPA Al-Ikhlash Pusparaya</h2>
+                    <p class="text-sm opacity-90 mt-1 max-w-xl">Membentuk Generasi Qur'ani yang Berakhlaq Mulia, Cerdas, dan Mandiri sejak Dini.</p>
+                </div>
+            </div>
+
+            <!-- Cek Laporan Murid -->
+            <section class="card-soft p-5 border-2 border-blue-200">
+                <h3 class="font-extrabold text-lg text-blue-900 mb-2 flex items-center gap-2">
+                    <i class="fas fa-search text-blue-600"></i> Cek Laporan & Setoran Ananda
+                </h3>
+                <p class="text-xs text-gray-500 mb-4">Pilih nama anak Anda untuk melihat perkembangan membaca, hafalan, dan catatan guru.</p>
+                
+                <div class="flex gap-2 mb-4">
+                    <select id="select-murid-wali" onchange="tampilkanLaporanWali()" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-blue-400">
+                        <!-- Pilihan otomatis dari JavaScript -->
+                    </select>
+                </div>
+
+                <!-- Container Hasil Laporan Murid -->
+                <div id="laporan-container" class="space-y-4">
+                    <!-- Diisi dinamis oleh JavaScript -->
+                </div>
+            </section>
+
+            <!-- Dokumentasi Kegiatan Sekolah -->
+            <section class="card-soft p-5">
+                <h3 class="font-bold text-lg text-blue-900 mb-3 flex items-center gap-2">
+                    <i class="fas fa-camera text-blue-600"></i> Galeri Dokumentasi Kegiatan TPA
+                </h3>
+                <div id="galeri-container" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Diisi dinamis oleh JavaScript -->
+                </div>
+            </section>
+
+        </div>
+
+        <!-- ==================== TAMPILAN GURU / WALI KELAS (AKSES DENGAN PASSWORD '5432') ==================== -->
+        <div id="view-guru" class="hidden space-y-6">
+            <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="text-blue-600 text-2xl">✍️</div>
+                    <div>
+                        <h3 class="font-bold text-blue-900">Portal Guru & Wali Kelas</h3>
+                        <p class="text-xs text-blue-700">Form input setoran harian & dokumentasi kegiatan TPA</p>
+                    </div>
+                </div>
+                <button onclick="keluarAkses()" class="text-xs bg-red-100 text-red-700 font-bold px-3 py-1.5 rounded-lg hover:bg-red-200">
+                    <i class="fas fa-sign-out-alt"></i> Keluar Portal
+                </button>
+            </div>
+
+            <!-- TAB MENU GURU -->
+            <div class="flex border-b border-blue-200 font-bold text-sm">
+                <button onclick="switchTabGuru('setoran')" id="tab-btn-setoran" class="px-4 py-2 border-b-2 border-blue-600 text-blue-600">Input Setoran Harian</button>
+                <button onclick="switchTabGuru('dokumentasi')" id="tab-btn-dokumentasi" class="px-4 py-2 text-gray-500 hover:text-blue-600">Upload Dokumentasi Kegiatan</button>
+            </div>
+
+            <!-- FORM 1: INPUT SETORAN HARIAN -->
+            <div id="guru-sec-setoran">
+                <form onsubmit="simpanSetoranLocal(event)" class="card-soft p-5 space-y-4">
+                    <input type="hidden" id="edit-index" value="-1">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">1. Pilih Nama Murid</label>
+                            <select id="input-murid" class="w-full p-2.5 border rounded-xl font-semibold text-sm">
+                                <!-- Otomatis dari JS -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">2. Nama Guru / Wali Kelas</label>
+                            <input type="text" id="input-guru" placeholder="Masukkan nama Guru" required class="w-full p-2.5 border rounded-xl text-sm font-bold text-gray-700">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Jenis Setoran Utama</label>
+                            <select id="input-jenis" class="w-full p-2.5 border rounded-xl font-semibold text-sm">
+                                <option value="Jilid Iqro / Tilawati">Jilid Iqro / Tilawati</option>
+                                <option value="Al-Qur'an">Al-Qur'an</option>
+                                <option value="Tahfidz Hafalan">Tahfidz Hafalan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Halaman / Surah / Juz</label>
+                            <input type="text" id="input-halaman" placeholder="misal: Halaman 15 / An-Naba 1-15" required class="w-full p-2.5 border rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Status Kelancaran</label>
+                            <select id="input-status" class="w-full p-2.5 border rounded-xl font-semibold text-sm">
+                                <option value="Lancar">🟢 Lancar</option>
+                                <option value="Mengulang">🔴 Mengulang</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Evaluasi Lanjut / Ulang -->
+                    <div class="p-3 bg-gray-50 rounded-xl border">
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Keputusan Guru</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-300 font-bold text-sm">
+                                <input type="radio" name="keputusan" value="Lanjut" checked class="w-4 h-4 text-blue-600"> 🟢 Lanjut
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-300 font-bold text-sm">
+                                <input type="radio" name="keputusan" value="Ulang" class="w-4 h-4 text-red-600"> 🔴 Ulang
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Hafalan Tambahan -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Surah / Doa Harian</label>
+                            <input type="text" id="input-doa" placeholder="misal: Doa Masuk Masjid" class="w-full p-2.5 border rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Hadits / Aqidah</label>
+                            <input type="text" id="input-hadits" placeholder="misal: Hadits Kebersihan" class="w-full p-2.5 border rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Praktek Sholat</label>
+                            <input type="text" id="input-sholat" placeholder="misal: Bacaan Ruku'" class="w-full p-2.5 border rounded-xl text-sm">
+                        </div>
+                    </div>
+
+                    <!-- Catatan Guru -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Catatan untuk Wali Murid</label>
+                        <textarea id="input-catatan" rows="2" placeholder="Tuliskan pesan perkembangan murid..." class="w-full p-2.5 border rounded-xl text-sm"></textarea>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button type="submit" id="btn-submit-setoran" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-md">
+                            <i class="fas fa-paper-plane mr-2"></i> Simpan Setoran Murid
+                        </button>
+                        <button type="button" onclick="resetFormSetoran()" id="btn-cancel-edit" class="hidden bg-gray-400 text-white font-bold px-4 py-3 rounded-xl hover:bg-gray-500">
+                            Batal
+                        </button>
+                    </div>
+                </form>
+
+                <!-- TABEL RIWAYAT SETORAN DENGAN AKSI EDIT & HAPUS -->
+                <div class="card-soft p-5 mt-6">
+                    <h4 class="font-bold text-gray-800 mb-3">📋 Tabel Daftar Setoran Murid</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-blue-100 text-blue-900 font-bold">
+                                    <th class="p-2 border">Tanggal</th>
+                                    <th class="p-2 border">Nama Murid</th>
+                                    <th class="p-2 border">Guru Pengampu</th>
+                                    <th class="p-2 border">Detail Setoran</th>
+                                    <th class="p-2 border">Status</th>
+                                    <th class="p-2 border text-center">Aksi (Edit / Hapus)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabel-setoran-guru">
+                                <!-- Otomatis diisi JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORM 2: UPLOAD DOKUMENTASI KEGIATAN (FILE / GALERI HP) -->
+            <div id="guru-sec-dokumentasi" class="hidden">
+                <form onsubmit="simpanDokumentasi(event)" class="card-soft p-5 space-y-4">
+                    <h4 class="font-bold text-blue-900 text-md border-b pb-2">Tambah Dokumentasi Kegiatan (Upload dari HP / File)</h4>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Nama Kegiatan</label>
+                            <input type="text" id="doc-judul" placeholder="misal: Praktek Sholat Khusyu" required class="w-full p-2.5 border rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Kategori Kegiatan</label>
+                            <select id="doc-kategori" class="w-full p-2.5 border rounded-xl text-sm font-semibold">
+                                <option value="Praktek Sholat">Praktek Sholat</option>
+                                <option value="Cooking Class">Cooking Class</option>
+                                <option value="Ujian Semester">Ujian Semester</option>
+                                <option value="Muroja'ah Bersama">Muroja'ah Bersama</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- INPUT FILE FOTO LANGSUNG DARI GALERI / FILE LOKAL -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1"><i class="fas fa-image text-blue-600 mr-1"></i> Pilih Foto dari Galeri HP / File Komputer</label>
+                        <input type="file" id="doc-file-foto" accept="image/*" class="w-full p-2 bg-gray-50 border rounded-xl text-sm">
+                        <p class="text-[10px] text-gray-500 mt-1">*Format gambar: JPG, PNG, atau WEBP.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Keterangan Singkat</label>
+                        <input type="text" id="doc-ket" placeholder="Keterangan singkat kegiatan..." class="w-full p-2.5 border rounded-xl text-sm">
+                    </div>
+
+                    <button type="submit" class="w-full bg-sky-600 text-white font-bold py-2.5 rounded-xl hover:bg-sky-700 transition shadow-sm">
+                        <i class="fas fa-upload mr-1"></i> Upload Dokumentasi Kegiatan
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ==================== TAMPILAN ADMIN (AKSES DENGAN PASSWORD '9876') ==================== -->
+        <div id="view-admin" class="hidden space-y-6">
+            <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-blue-900">Panel Kelola Data Murid & Kelas</h3>
+                    <p class="text-xs text-blue-700">Wali Kelas / Admin dapat menambahkan data murid baru</p>
+                </div>
+                <button onclick="keluarAkses()" class="text-xs bg-red-100 text-red-700 font-bold px-3 py-1.5 rounded-lg hover:bg-red-200">
+                    <i class="fas fa-sign-out-alt"></i> Keluar
+                </button>
+            </div>
+
+            <!-- Form Tambah Murid -->
+            <div class="card-soft p-5">
+                <h4 class="font-bold text-gray-800 mb-3">Tambah Data Murid Baru</h4>
+                <form onsubmit="tambahMuridBaru(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <input type="text" id="admin-nama-murid" placeholder="Nama Lengkap Murid" required class="p-2.5 border rounded-xl text-sm">
+                    <input type="text" id="admin-kelas-murid" placeholder="Kelas / Jilid (misal: Jilid 1, Tahfidz)" required class="p-2.5 border rounded-xl text-sm">
+                    <input type="text" id="admin-walikelas-murid" placeholder="Nama Wali Kelas / Guru" required class="p-2.5 border rounded-xl text-sm">
+                    <button type="submit" class="sm:col-span-3 bg-blue-600 text-white text-xs py-2.5 rounded-xl font-bold hover:bg-blue-700 mt-2">
+                        + Tambah Murid Ke Data Master
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tabel Master Murid -->
+            <div class="card-soft p-5">
+                <h4 class="font-bold text-gray-800 mb-3">Daftar Murid Terdaftar</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-blue-100 text-blue-900 font-bold">
+                                <th class="p-2 border">No</th>
+                                <th class="p-2 border">Nama Murid</th>
+                                <th class="p-2 border">Kelas / Level</th>
+                                <th class="p-2 border">Wali Kelas / Guru</th>
+                                <th class="p-2 border text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabel-murid-admin">
+                            <!-- Otomatis dari JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- LOGIKA JAVASCRIPT -->
+    <script>
+        // URL GOOGLE APPS SCRIPT DATABASE SPREADSHEET KAMU
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUUZhPuPbEEwW4chpeZBmQFEj-_uZuhwZMvUUyOE7JeOgs4ri0WJRI1j2tDp-8G7rV/exec";
+
+        // DATA DEFAULT
+        var daftarMurid = [];
+        var databaseSetoran = [];
+        var galeriDokumentasi = [];
+
+        // PASSWORD AKSES TERPISAH
+        const PASS_GURU = "5432";
+        const PASS_ADMIN = "9876";
+
+        var roleAktif = 'wali';
+
+        window.onload = function() {
+            muatDataDariSheets();
+        };
+
+        // FUNGSI MEMUAT DATA DARI GOOGLE SHEETS
+        async function muatDataDariSheets() {
+            try {
+                let res = await fetch(SCRIPT_URL);
+                let data = await res.json();
+                
+                if (data.murid && data.murid.length > 1) {
+                    daftarMurid = data.murid.slice(1).map((m, idx) => ({
+                        id: idx + 1, nama: m[0], kelas: m[1], waliKelas: m[2]
+                    }));
+                }
+                
+                if (data.setoran && data.setoran.length > 1) {
+                    databaseSetoran = data.setoran.slice(1).map(s => ({
+                        tanggal: s[0], nama: s[1], guru: s[2], jenis: s[3],
+                        halaman: s[4], status: s[5], keputusan: s[6],
+                        doa: s[7], sholat: s[8], catatan: s[9]
+                    }));
+                }
+
+                renderDaftarMurid();
+                renderTabelSetoranGuru();
+                tampilkanLaporanWali();
+                renderGaleriDokumentasi();
+            } catch (err) {
+                console.log("Memuat data lokal/default:", err);
+                renderDaftarMurid();
+                renderTabelSetoranGuru();
+                tampilkanLaporanWali();
+                renderGaleriDokumentasi();
+            }
+        }
+
+        // SISTEM CEK PASSWORD BERDASARKAN ROLE
+        function switchRole(role) {
+            if (role === 'guru') {
+                if (roleAktif !== 'guru') {
+                    setTimeout(() => {
+                        let inputPass = prompt("Masukkan Password Portal Guru:");
+                        if (inputPass === PASS_GURU) {
+                            bukaHalaman(role);
+                        } else if (inputPass !== null) {
+                            alert("❌ Password Guru Salah! Akses ditolak.");
+                        }
+                    }, 50);
+                    return;
+                }
+            } else if (role === 'admin') {
+                if (roleAktif !== 'admin') {
+                    setTimeout(() => {
+                        let inputPass = prompt("Masukkan Password Admin:");
+                        if (inputPass === PASS_ADMIN) {
+                            bukaHalaman(role);
+                        } else if (inputPass !== null) {
+                            alert("❌ Password Admin Salah! Akses ditolak.");
+                        }
+                    }, 50);
+                    return;
+                }
+            } else {
+                bukaHalaman(role);
+            }
+        }
+
+        function bukaHalaman(role) {
+            roleAktif = role;
+
+            document.getElementById('view-wali').classList.add('hidden');
+            document.getElementById('view-guru').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+
+            document.getElementById('btn-wali').className = "px-3 py-1.5 rounded-lg text-blue-800 hover:bg-blue-100";
+            document.getElementById('btn-guru').className = "px-3 py-1.5 rounded-lg text-blue-800 hover:bg-blue-100";
+            document.getElementById('btn-admin').className = "px-3 py-1.5 rounded-lg text-blue-800 hover:bg-blue-100";
+
+            if (role === 'wali') {
+                document.getElementById('view-wali').classList.remove('hidden');
+                document.getElementById('btn-wali').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm font-bold";
+                tampilkanLaporanWali();
+                renderGaleriDokumentasi();
+            } else if (role === 'guru') {
+                document.getElementById('view-guru').classList.remove('hidden');
+                document.getElementById('btn-guru').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm font-bold";
+            } else if (role === 'admin') {
+                document.getElementById('view-admin').classList.remove('hidden');
+                document.getElementById('btn-admin').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm font-bold";
+            }
+        }
+
+        function keluarAkses() {
+            roleAktif = 'wali';
+            alert("Anda telah keluar dari mode khusus.");
+            switchRole('wali');
+        }
+
+        // RENDER PILIHAN MURID
+        function renderDaftarMurid() {
+            const selectWali = document.getElementById('select-murid-wali');
+            const selectGuru = document.getElementById('input-murid');
+            const tabelAdmin = document.getElementById('tabel-murid-admin');
+
+            if (!selectWali || !selectGuru || !tabelAdmin) return;
+
+            selectWali.innerHTML = '';
+            selectGuru.innerHTML = '';
+            tabelAdmin.innerHTML = '';
+
+            if (daftarMurid.length === 0) {
+                selectWali.innerHTML = '<option value="">-- Belum ada data murid (Isi di menu Admin) --</option>';
+                selectGuru.innerHTML = '<option value="">-- Belum ada data murid (Isi di menu Admin) --</option>';
+                tabelAdmin.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">Data murid masih kosong. Tambahkan data murid di form atas.</td></tr>';
+                return;
+            }
+
+            daftarMurid.forEach((m, idx) => {
+                selectWali.innerHTML += `<option value="${m.nama}">${m.nama} (${m.kelas} - Wali Kelas: ${m.waliKelas})</option>`;
+                selectGuru.innerHTML += `<option value="${m.nama}">${m.nama} (${m.kelas})</option>`;
+                
+                tabelAdmin.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-2 border font-bold">${idx + 1}</td>
+                        <td class="p-2 border font-bold text-gray-800">${m.nama}</td>
+                        <td class="p-2 border"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">${m.kelas}</span></td>
+                        <td class="p-2 border text-gray-700 font-semibold">${m.waliKelas}</td>
+                        <td class="p-2 border text-center">
+                            <button onclick="hapusMurid(${idx})" class="bg-red-500 text-white text-[10px] px-2 py-1 rounded font-bold hover:bg-red-600">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // TAMPILKAN LAPORAN DI WALI MURID
+        function tampilkanLaporanWali() {
+            const selectWali = document.getElementById('select-murid-wali');
+            const container = document.getElementById('laporan-container');
+
+            if (!selectWali || !container) return;
+            const namaTerpilih = selectWali.value;
+
+            if (!namaTerpilih) {
+                container.innerHTML = `<div class="bg-gray-50 p-6 text-center rounded-xl text-gray-500 text-sm">Silahkan tambahkan data murid & setoran harian terlebih dahulu di Portal Guru/Admin.</div>`;
+                return;
+            }
+
+            const listSetoran = databaseSetoran.filter(item => item.nama === namaTerpilih);
+
+            if (listSetoran.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-gray-50 p-6 text-center rounded-xl text-gray-500 text-sm">
+                        Belum ada data setoran harian untuk <strong>${namaTerpilih}</strong>.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+            listSetoran.slice().reverse().forEach(item => {
+                const badgeStatus = item.keputusan === 'Lanjut' 
+                    ? `<span class="bg-green-100 text-green-800 border border-green-300 font-bold text-xs px-3 py-1 rounded-lg">🟢 Lancar (${item.keputusan})</span>`
+                    : `<span class="bg-red-100 text-red-800 border border-red-300 font-bold text-xs px-3 py-1 rounded-lg">🔴 Mengulang (${item.keputusan})</span>`;
+
+                container.innerHTML += `
+                    <div class="bg-soft-blue p-4 rounded-xl border border-blue-200 space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="bg-blue-600 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">Laporan Setoran</span>
+                                <h4 class="font-extrabold text-lg text-blue-900 mt-1">${item.nama}</h4>
+                                <p class="text-xs text-gray-600 font-semibold">${item.tanggal} • Guru: ${item.guru}</p>
+                            </div>
+                            ${badgeStatus}
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 text-xs bg-white p-3 rounded-lg border border-blue-100">
+                            <div><strong class="text-gray-500">Program / Jenis:</strong><br><span class="font-bold text-gray-800">${item.jenis}</span></div>
+                            <div><strong class="text-gray-500">Halaman / Hafalan:</strong><br><span class="font-bold text-gray-800">${item.halaman}</span></div>
+                            <div><strong class="text-gray-500">Surah / Doa:</strong><br><span class="font-bold text-gray-800">${item.doa || '-'}</span></div>
+                            <div><strong class="text-gray-500">Praktek Sholat:</strong><br><span class="font-bold text-gray-800">${item.sholat || '-'}</span></div>
+                        </div>
+
+                        <div class="bg-white p-3 rounded-lg border border-blue-100 text-xs">
+                            <strong class="text-blue-800"><i class="fas fa-comment-dots mr-1"></i> Catatan Guru:</strong>
+                            <p class="text-gray-600 italic mt-0.5">"${item.catatan || 'Tetap semangat belajar!'}"</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // RENDER TABEL SETORAN UNTUK GURU
+        function renderTabelSetoranGuru() {
+            const tbody = document.getElementById('tabel-setoran-guru');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (databaseSetoran.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada riwayat setoran yang dimasukkan.</td></tr>';
+                return;
+            }
+
+            databaseSetoran.forEach((item, idx) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-2 border text-gray-600">${item.tanggal}</td>
+                        <td class="p-2 border font-bold text-gray-800">${item.nama}</td>
+                        <td class="p-2 border font-medium text-blue-800">${item.guru}</td>
+                        <td class="p-2 border">${item.jenis} (${item.halaman})</td>
+                        <td class="p-2 border font-bold ${item.keputusan === 'Lanjut' ? 'text-green-600' : 'text-red-600'}">${item.status} - ${item.keputusan}</td>
+                        <td class="p-2 border text-center whitespace-nowrap">
+                            <button onclick="editSetoran(${idx})" class="bg-blue-500 text-white text-[10px] px-2 py-1 rounded font-bold hover:bg-blue-600 mr-1">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button onclick="hapusSetoran(${idx})" class="bg-red-500 text-white text-[10px] px-2 py-1 rounded font-bold hover:bg-red-600">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // SIMPAN & EDIT SETORAN KE GOOGLE SHEETS
+        async function simpanSetoranLocal(e) {
+            e.preventDefault();
+
+            const editIndex = parseInt(document.getElementById('edit-index').value);
+            const nama = document.getElementById('input-murid').value;
+            const guru = document.getElementById('input-guru').value;
+            const jenis = document.getElementById('input-jenis').value;
+            const halaman = document.getElementById('input-halaman').value;
+            const status = document.getElementById('input-status').value;
+            const keputusan = document.querySelector('input[name="keputusan"]:checked').value;
+            const doa = document.getElementById('input-doa').value;
+            const sholat = document.getElementById('input-sholat').value;
+            const catatan = document.getElementById('input-catatan').value;
+
+            if (!nama) {
+                alert("Pilih nama murid terlebih dahulu!");
+                return;
+            }
+
+            const dataSetoran = {
+                action: "tambahSetoran",
+                nama,
+                tanggal: new Date().toLocaleDateString('id-ID'),
+                guru,
+                jenis,
+                halaman,
+                status,
+                keputusan,
+                doa,
+                sholat,
+                catatan
+            };
+
+            if (editIndex >= 0) {
+                databaseSetoran[editIndex] = dataSetoran;
+                alert(`✅ Setoran ${nama} berhasil diperbarui!`);
+            } else {
+                databaseSetoran.push(dataSetoran);
+                // Kirim ke Google Sheets
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: "POST",
+                        body: JSON.stringify(dataSetoran)
+                    });
+                    alert(`✅ Setoran untuk ${nama} berhasil disimpan ke Google Sheets!`);
+                } catch (err) {
+                    alert(`✅ Setoran untuk ${nama} disimpan secara lokal.`);
+                }
+            }
+
+            resetFormSetoran();
+            renderTabelSetoranGuru();
+            tampilkanLaporanWali();
+        }
+
+        function editSetoran(index) {
+            const item = databaseSetoran[index];
+            document.getElementById('edit-index').value = index;
+            document.getElementById('input-murid').value = item.nama;
+            document.getElementById('input-guru').value = item.guru;
+            document.getElementById('input-jenis').value = item.jenis;
+            document.getElementById('input-halaman').value = item.halaman;
+            document.getElementById('input-status').value = item.status;
+            document.getElementById('input-doa').value = item.doa;
+            document.getElementById('input-sholat').value = item.sholat;
+            document.getElementById('input-catatan').value = item.catatan;
+
+            document.getElementById('btn-submit-setoran').innerHTML = '<i class="fas fa-save mr-2"></i> Update Data Setoran';
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+            window.scrollTo({ top: 100, behavior: 'smooth' });
+        }
+
+        function resetFormSetoran() {
+            document.getElementById('edit-index').value = "-1";
+            document.getElementById('input-halaman').value = '';
+            document.getElementById('input-doa').value = '';
+            document.getElementById('input-sholat').value = '';
+            document.getElementById('input-catatan').value = '';
+            document.getElementById('btn-submit-setoran').innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Simpan Setoran Murid';
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+        }
+
+        function hapusSetoran(index) {
+            if (confirm("Apakah Anda yakin ingin menghapus data setoran ini?")) {
+                databaseSetoran.splice(index, 1);
+                renderTabelSetoranGuru();
+                tampilkanLaporanWali();
+            }
+        }
+
+        // SIMPAN DOKUMENTASI KEGIATAN
+        function simpanDokumentasi(e) {
+            e.preventDefault();
+            const judul = document.getElementById('doc-judul').value;
+            const kategori = document.getElementById('doc-kategori').value;
+            const fileInput = document.getElementById('doc-file-foto');
+            const ket = document.getElementById('doc-ket').value;
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fotoBase64 = e.target.result;
+                    galeriDokumentasi.push({
+                        judul, kategori, foto: fotoBase64, ket, tanggal: new Date().toLocaleDateString('id-ID')
+                    });
+
+                    alert("✅ Dokumentasi kegiatan berhasil diupload ke galeri!");
+                    document.getElementById('doc-judul').value = '';
+                    document.getElementById('doc-file-foto').value = '';
+                    document.getElementById('doc-ket').value = '';
+                    renderGaleriDokumentasi();
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                galeriDokumentasi.push({
+                    judul, kategori, foto: '', ket, tanggal: new Date().toLocaleDateString('id-ID')
+                });
+
+                alert("✅ Dokumentasi kegiatan berhasil dipublish!");
+                document.getElementById('doc-judul').value = '';
+                document.getElementById('doc-ket').value = '';
+                renderGaleriDokumentasi();
+            }
+        }
+
+        function renderGaleriDokumentasi() {
+            const container = document.getElementById('galeri-container');
+            if (!container) return;
+
+            if (galeriDokumentasi.length === 0) {
+                container.innerHTML = `<p class="col-span-3 text-center text-xs text-gray-400 p-4">Belum ada foto kegiatan. Guru dapat menguploadnya dari Portal Guru.</p>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            galeriDokumentasi.slice().reverse().forEach(item => {
+                const imgTag = item.foto 
+                    ? `<img src="${item.foto}" class="h-32 w-full object-cover">`
+                    : `<div class="h-32 bg-blue-200 flex items-center justify-center text-4xl">📸</div>`;
+
+                container.innerHTML += `
+                    <div class="border rounded-xl overflow-hidden bg-gray-50 shadow-sm">
+                        ${imgTag}
+                        <div class="p-2.5">
+                            <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">${item.kategori}</span>
+                            <h4 class="font-bold text-xs text-gray-800 mt-1">${item.judul}</h4>
+                            <p class="text-[10px] text-gray-500 mt-0.5">${item.ket}</p>
+                            <p class="text-[9px] text-gray-400 mt-1">${item.tanggal}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // TAMBAH MURID ADMIN KE GOOGLE SHEETS
+        async function tambahMuridBaru(e) {
+            e.preventDefault();
+            const nama = document.getElementById('admin-nama-murid').value;
+            const kelas = document.getElementById('admin-kelas-murid').value;
+            const waliKelas = document.getElementById('admin-walikelas-murid').value;
+
+            const dataMuridBaru = {
+                action: "tambahMurid",
+                nama, kelas, waliKelas
+            };
+
+            daftarMurid.push({ id: daftarMurid.length + 1, nama, kelas, waliKelas });
+            renderDaftarMurid();
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify(dataMuridBaru)
+                });
+                alert("✅ Murid baru berhasil ditambahkan ke Google Sheets!");
+            } catch (err) {
+                alert("✅ Murid baru ditambahkan secara lokal.");
+            }
+
+            document.getElementById('admin-nama-murid').value = '';
+            document.getElementById('admin-kelas-murid').value = '';
+            document.getElementById('admin-walikelas-murid').value = '';
+        }
+
+        function hapusMurid(index) {
+            if (confirm("Hapus murid ini dari daftar master?")) {
+                daftarMurid.splice(index, 1);
+                renderDaftarMurid();
+            }
+        }
+
+        function switchTabGuru(tab) {
+            if (tab === 'setoran') {
+                document.getElementById('guru-sec-setoran').classList.remove('hidden');
+                document.getElementById('guru-sec-dokumentasi').classList.add('hidden');
+                document.getElementById('tab-btn-setoran').className = "px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-bold";
+                document.getElementById('tab-btn-dokumentasi').className = "px-4 py-2 text-gray-500 hover:text-blue-600 font-bold";
+            } else {
+                document.getElementById('guru-sec-setoran').classList.add('hidden');
+                document.getElementById('guru-sec-dokumentasi').classList.remove('hidden');
+                document.getElementById('tab-btn-setoran').className = "px-4 py-2 text-gray-500 hover:text-blue-600 font-bold";
+                document.getElementById('tab-btn-dokumentasi').className = "px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-bold";
+            }
+        }
+    </script>
+</body>
+</html>
